@@ -29,7 +29,10 @@ Memo_ACTIVE = "";
 
 
 Aircraft_type = { "F-15C", "A-10A","MiG-29A", "MiG-29G", "MiG-29S", "Su-25", "Su-27","Su-33","A-10C","Ka-50","Mi-8MTV2","UH-1H", "Su-25T","P51-D","TF-51D" }
-R828FreqTab =  { "035.650" , "025.675" , "048.550" , "035.650" , "067.775" , "052.825" , "048.250" , "042.050" , "052.750", "023.725" }
+
+-- KaTZ-Modification
+-- Table du KA50 desactivé, récupération de la vrai fréquence
+-- R828FreqTab =  { "035.650" , "025.675" , "048.550" , "035.650" , "067.775" , "052.825" , "048.250" , "042.050" , "052.750", "023.725" }
 
 
 sUniversRadio=
@@ -193,15 +196,21 @@ sUniversRadio=
 						self.udp:sendto( DataToSend , self.ip , udpport )
 						Memo_ACTIVE = DataToSend
 					end
+					
+					-- KaTZ-Modifications
+					-- Récupération des fréquences par get_frequency()
+					-- getfrequency renvoie les fréquences sur 9 chiffres (3 derniers inutiles) type 121500235
+					-- on divise par 1000000, pour obtenir 121.500xyz
+					-- puis on format à 3 decimales pour avoir finalement 121.500
 
 					--VHF1 R828
 					local R828 = GetDevice(49)
-					local F828 = R828:get_frequency() / 1000
+					local F828 = R828:get_frequency() / 1000000
 					VHF1 = string.format("%.3f",F828);
 					
 					--VHF2 R800
 					local R800 = GetDevice(48)
-					local F800 = R800:get_frequency() / 1000
+					local F800 = R800:get_frequency() / 1000000
 					VHF2 = string.format("%.3f",F800);
 					
 					
@@ -268,19 +277,19 @@ sUniversRadio=
 					
 					--VHF1 R828
 					local R828 = GetDevice(39)
-					local F828 = R828:get_frequency() / 1000
+					local F828 = R828:get_frequency() / 1000000
 					local VHF1 = string.format("%.3f",F828);
 					--Debug via SIOC : k.sioc.send(11, F828)	
 					
 					--VHF2 R863
 					local R863 = GetDevice(38)
-					local F863 = R863:get_frequency() / 1000
+					local F863 = R863:get_frequency() / 1000000
 					local VHF2 = string.format("%.3f",F863);
 					--Debug via SIOC : k.sioc.send(12, F863)	
 					
 					--HF Jadro
 					local RJad = GetDevice(37)
-					local FJad = RJad:get_frequency() / 1000
+					local FJad = RJad:get_frequency() / 1000000
 					local HF = string.format("%.3f",FJad);
 					--Debug via SIOC : k.sioc.send(13, FJad)
 					

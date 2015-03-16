@@ -173,7 +173,9 @@ sUniversRadio=
 					end
 				end -- End A10
 
-				-- -----------
+				-- -------------------------------------------------------------------------------------------------------------------
+				-- Version 08_00 par KaTZe : Modification avec les get_frequency()
+				
 				-- K A 5 0
 				if ( MyPlane.Name == "Ka-50" ) then
 					local lDevice = GetDevice(0)
@@ -243,7 +245,9 @@ sUniversRadio=
 				end --End Ka50
 				
 				-- ------------------------------------------------------------------------------------------------------------
-				-- MI-8
+				-- Version 08_00 par KaTZe : Tout Mi-8, utilisation des get_frequency()
+				
+				-- MI-8 --- 
 				if ( MyPlane.Name == "Mi-8MT" ) then
 					local lDevice = GetDevice(0)
 					
@@ -289,7 +293,7 @@ sUniversRadio=
 					local R863_ON    = (lDevice:get_argument_value(627) > 0.1)  -- Switch On R-863 CB overhead panel
 					local Jadro   = (lDevice:get_argument_value(484) > 0.1)  -- Switch On Jadro overhead panel Triangulaire Droit
 										
-					local ENERG_863 =  BATTERY  or  EXTPWRSW -- 1 Batterie ou  ExtPwrSwitch+Voyant 
+					local ENERG_863 =  BATTERY  or  EXTPWR -- 1 Batterie ou  ExtPwrSwitch+Voyant 
 					local ENERG_828 =  RECT  or EXTPWR -- 1 Rectifier ou  ExtPwrSwitch+Voyant 
 					local ENERG_JAD =  RECT  or EXTPWR -- 1 Rectifier ou  ExtPwrSwitch+Voyant 
 									

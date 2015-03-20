@@ -310,7 +310,7 @@ sUniversRadio=
 					
 					local R828_ON    = (lDevice:get_argument_value(756) > 0.1)  -- Switch On R-828 sur boitier R828
 					local R863_ON    = (lDevice:get_argument_value(627) > 0.1)  -- Switch On R-863 CB overhead panel
-					local Jadro   = (lDevice:get_argument_value(484) > 0.1)  -- Switch On Jadro overhead panel Triangulaire Droit
+					local Jadro   = ((lDevice:get_argument_value(484) + lDevice:get_argument_value(744)) > 1.6 )  -- Switch On Jadro overhead panel Triangulaire Droit + Sur Radio (On)
 										
 					local ENERG_863 =  BATTERY  or  EXTPWR -- 1 Batterie ou  ExtPwrSwitch+Voyant 
 					local ENERG_828 =  RECT  or EXTPWR -- 1 Rectifier ou  ExtPwrSwitch+Voyant 
@@ -322,7 +322,7 @@ sUniversRadio=
 					end
 					
 					if not ( ENERG_828 and R828_ON ) then
-						VHF1 = "000.000"
+						VHF1 = "00.000"
 					end
 					
 					if not ( ENERG_863 and Jadro ) then

@@ -103,14 +103,7 @@ sUniversRadio=
 					t = list_cockpit_params ()
 					local lDevice = GetDevice(0)
 
-					--FREQUENCIES
-					index = string.find ( t , "VHF_AM_FREQ:" )
-					AM = string.sub ( t , index +12 , index +12 + 6 )
-					index = string.find ( t , "UHF_FREQ:"  )
-					UHF = string.sub ( t , index +9, index +9 + 6 )
-					index = string.find ( t , "VHF_FM_FREQ:" )
-					FM = string.sub ( t , index +12 , index +12 + 5 )
-
+					                                
 					--CHECK ENERGY
 					BATTERY   = lDevice:get_argument_value(246)
 					APU_GEN   = lDevice:get_argument_value(241)
@@ -200,17 +193,19 @@ sUniversRadio=
 					-- KaTZ-Modifications
 					-- Récupération des fréquences par get_frequency()
 					-- getfrequency renvoie les fréquences sur 9 chiffres (3 derniers inutiles) type 121500235
-					-- on divise par 1000000, pour obtenir 121.500xyz
+					-- on divise par 1000, pour obtenir 121500
+					-- on divise par 25, puis arrondi, puis multiplication par 25, pour avoir un pas de 25Hz
 					-- puis on format à 3 decimales pour avoir finalement 121.500
 
 					--VHF1 R828
 					local R828 = GetDevice(49)
-					local F828 = R828:get_frequency() / 1000000
+					local F828 = (math.floor(R828:get_frequency() / 25000)) * 0.025
 					VHF1 = string.format("%.3f",F828);
+					print(VHF1)
 					
 					--VHF2 R800
 					local R800 = GetDevice(48)
-					local F800 = R800:get_frequency() / 1000000
+					local F800 = (math.floor(R800:get_frequency() / 25000)) * 0.025
 					VHF2 = string.format("%.3f",F800);
 					
 					
@@ -220,6 +215,11 @@ sUniversRadio=
 					end
 					--SPU9SW
 					SPU9SW = "625.000"
+					
+					--Debug via SIOC : 
+					--k.sioc.send(11, F828*1000)	
+					--k.sioc.send(12, F800*1000)	
+					
 
 					--CHECK ENERGY
 					BATTERY1   = lDevice:get_argument_value(264)
@@ -239,13 +239,20 @@ sUniversRadio=
 					if ( VHF1_ON < 0.1 ) then  VHF1 = "000.000" end
 					if ( VHF2_ON < 0.1 ) then  VHF2 = "000.000" end
 
-					DataToSend =  string.format ( "SET_RADIO: %s %s %s 000.000 0 \0" , VHF1, VHF2 , SPU9SW )
+					DataToSend =  string.format ( "SET_RADIO: 0%s %s %s \0" , VHF1, VHF2 , SPU9SW )
 					if ( Memo_FQ ~= DataToSend ) then
 						self.udp:sendto( DataToSend , self.ip , udpport )
 						Memo_FQ = DataToSend
 					end
+					
+					
 					--VOLUMES
-					VOL_VHF1 = math.floor( (lDevice:get_argument_value(372) *100   ) )
+					local VOL_VHF1 = math.floor( (lDevice:get_argument_value(372) *100   ) )
+					
+					-- Debug via SIOC : 
+					--k.sioc.send(15, VOL_VHF1)	
+					
+										
 					DataToSend =  string.format ( "SET_VOLUM: %d 100 100 \0" , VOL_VHF1 )
 					if ( Memo_VOL ~= DataToSend ) then
 						self.udp:sendto( DataToSend , self.ip , udpport )
@@ -277,21 +284,24 @@ sUniversRadio=
 					
 					--VHF1 R828
 					local R828 = GetDevice(39)
-					local F828 = R828:get_frequency() / 1000000
+					local F828 = (math.floor(R828:get_frequency() / 25000)) * 0.025
 					local VHF1 = string.format("%.3f",F828);
-					--Debug via SIOC : k.sioc.send(11, F828)	
-					
+										
 					--VHF2 R863
 					local R863 = GetDevice(38)
-					local F863 = R863:get_frequency() / 1000000
+					local F863 = (math.floor(R863:get_frequency() / 25000)) * 0.025
 					local VHF2 = string.format("%.3f",F863);
-					--Debug via SIOC : k.sioc.send(12, F863)	
-					
+										
 					--HF Jadro
 					local RJad = GetDevice(37)
 					local FJad = RJad:get_frequency() / 1000000
 					local HF = string.format("%.3f",FJad);
-					--Debug via SIOC : k.sioc.send(13, FJad)
+					
+					
+					--Debug via SIOC : 
+					--k.sioc.send(11, F828*1000)	
+					--k.sioc.send(12, F863*1000)	
+					--k.sioc.send(13, FJad*1000)
 					
 					--CHECK ENERGY
 					local BATTERY   = ((lDevice:get_argument_value(495) +  lDevice:get_argument_value(496)) > 0 ) -- Position Switches Bat-1 OU Bat-2
@@ -319,8 +329,12 @@ sUniversRadio=
 						HF = "000.000"
 					end
 					
+					if (FJad >= 10) then
+						DataToSend =  string.format ( "SET_RADIO: 0%s %s 0%s \0" , VHF1, VHF2 , HF )
+						else
+						DataToSend =  string.format ( "SET_RADIO: 0%s %s 00%s \0" , VHF1, VHF2 , HF )
+					end	
 					
-					DataToSend =  string.format ( "SET_RADIO: %s %s %s 000.000 0 \0" , VHF1, VHF2 , HF )
 					if ( Memo_FQ ~= DataToSend ) then
 						self.udp:sendto( DataToSend , self.ip , udpport )
 						Memo_FQ = DataToSend
@@ -328,17 +342,112 @@ sUniversRadio=
 					
 					
 					--VOLUMES
-					VOL_VHF2 = math.floor( (lDevice:get_argument_value(156) * 100   ) )
-					-- Debug via SIOC : k.sioc.send(10, VOL_VHF2)	
+					local VOL_VHF2 = math.floor( (lDevice:get_argument_value(156) * 100   ) )
+					local VOL_VHF1 = math.floor( (lDevice:get_argument_value(737) * 100   ) )
+					local VOL_HF = math.floor( (lDevice:get_argument_value(743) * 100   ) )
 					
 					
-					DataToSend =  string.format ( "SET_VOLUM: %d 100 100 \0" , VOL_VHF2 )
+					-- Debug via SIOC : 
+					--k.sioc.send(15, VOL_VHF1)	
+					--k.sioc.send(16, VOL_VHF2)	
+					--k.sioc.send(17, VOL_HF)	
+					
+					DataToSend =  string.format ( "SET_VOLUM: %d %d %d \0" , VOL_VHF1, VOL_VHF2, VOL_HF  )
+										
 					if ( Memo_VOL ~= DataToSend ) then
 						self.udp:sendto( DataToSend , self.ip , udpport )
 						Memo_VOL = DataToSend
 					end
 				end --End Mi-8
 				
+				-- ------------------------------------------------------------------------------------------------------------
+				-- Version 08_01 par KaTZe : Tout Huey
+				
+				-- UH-1H Huey --- 
+				if ( MyPlane.Name == "UH-1H" ) then
+					local lDevice = GetDevice(0)
+					
+					--Selecteur d'émission
+					local Selec = math.floor( 0.5 +(lDevice:get_argument_value(30) *10) )
+					--Debug via SIOC : 
+					k.sioc.send(10, Selec)	
+					
+					local ACTIVE = "___"
+					if Selec == 3 then ACTIVE = "_X_" -- Position ARC-134 VHF
+						elseif Selec == 4 then ACTIVE = "__X" -- Position ARC-51 UHF
+						elseif Selec == 2 then ACTIVE = "X__" -- Position ARC-131 FM
+						else ACTIVE = "___"
+					end
+					DataToSend =  string.format ( "SET_ACTIV: %s \0" , ACTIVE )
+
+					if ( Memo_ACTIVE ~= DataToSend ) then
+						self.udp:sendto( DataToSend , self.ip , udpport )
+						Memo_ACTIVE = DataToSend
+					end
+					
+					--VHF ARC-134 (AM)
+					local Arc134 = GetDevice(20)
+					local FArc134 = (math.floor(Arc134:get_frequency() / 25000)) * 0.025
+					local VHF = string.format("%06.3f",FArc134);
+										
+					--UHF ARC-131 (FM)
+					local Arc131 = GetDevice(23)
+					local FArc131 = (math.floor(Arc131:get_frequency() / 25000)) * 0.025
+					local FM = string.format("%06.3f",FArc131);
+										
+					--FM ARC-51
+					local RUHF = GetDevice(22)
+					local FUHF = RUHF:get_frequency() / 1000000
+					local UHF = string.format("%06.3f",FUHF);
+					
+					--Debug via SIOC : 
+					--k.sioc.send(11, FArc134*1000)	
+					--k.sioc.send(12, FArc131*1000)	
+					--k.sioc.send(13, FUHF*1000)
+					
+					--CHECK ENERGY
+					local BATTERY   = ((lDevice:get_argument_value(219)) < 1 ) -- Position Switches Batterie (On = 0)
+										
+					local FM_ON    = (lDevice:get_argument_value(23) > 0.1)  -- Switch On VHF_FM
+					local VHF_ON    = (lDevice:get_argument_value(24) > 0.1)  -- Switch On VHF_AM
+					local UHF_ON   = (lDevice:get_argument_value(25) > 0.1)  -- Switch On UHF
+										
+					if not ( BATTERY and FM_ON  ) then
+						FM = "00.000"
+					end
+					
+					if not ( BATTERY and VHF_ON ) then
+						VHF = "000.000"
+					end
+					
+					if not ( BATTERY and UHF_ON  ) then
+						UHF = "000.000"
+					end
+															
+					DataToSend =  string.format ( "SET_RADIO: 0%s %s %s \0" , FM, VHF, UHF )
+					if ( Memo_FQ ~= DataToSend ) then
+						self.udp:sendto( DataToSend , self.ip , udpport )
+						Memo_FQ = DataToSend
+					end
+					
+					--VOLUMES
+					local VOL_FM = 100 - math.floor( (lDevice:get_argument_value(21) * 100   ) )  -- Inversé 100-0
+					local VOL_VHF = math.floor( (lDevice:get_argument_value(8) * 155   ) )  -- Normal 0-64% , compensation 1.55
+					local VOL_UHF = 100 - math.floor( (lDevice:get_argument_value(37) * 100  - 30) * 1.42)  -- Inversé 100-30
+					
+					
+					-- Debug via SIOC : 
+					--k.sioc.send(15, VOL_FM)	
+					--k.sioc.send(16, VOL_VHF)	
+					--k.sioc.send(17, VOL_UHF)	
+										
+					DataToSend =  string.format ( "SET_VOLUM: %d %d %d \0" , VOL_FM, VOL_VHF, VOL_UHF  )
+					
+					if ( Memo_VOL ~= DataToSend ) then
+						self.udp:sendto( DataToSend , self.ip , udpport )
+						Memo_VOL = DataToSend
+					end
+				end --End UH-1H Huey --- 
 				
 			end
 		end

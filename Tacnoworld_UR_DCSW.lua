@@ -348,8 +348,8 @@ sUniversRadio=
 					
 					
 					-- Debug via SIOC : 
-					--k.sioc.send(15, VOL_VHF1)	
-					--k.sioc.send(16, VOL_VHF2)	
+					-- k.sioc.send(15, VOL_VHF1)	
+					-- k.sioc.send(16, VOL_VHF2)	
 					--k.sioc.send(17, VOL_HF)	
 					
 					DataToSend =  string.format ( "SET_VOLUM: %d %d %d \0" , VOL_VHF1, VOL_VHF2, VOL_HF  )
@@ -370,7 +370,7 @@ sUniversRadio=
 					--Selecteur d'émission
 					local Selec = math.floor( 0.5 +(lDevice:get_argument_value(30) *10) )
 					--Debug via SIOC : 
-					k.sioc.send(10, Selec)	
+					--k.sioc.send(10, Selec)	
 					
 					local ACTIVE = "___"
 					if Selec == 3 then ACTIVE = "_X_" -- Position ARC-134 VHF

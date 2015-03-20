@@ -326,7 +326,7 @@ sUniversRadio=
 					end
 					
 					if not ( ENERG_863 and Jadro ) then
-						HF = "000.000"
+						HF = "0.000"
 					end
 					
 					if (FJad >= 10) then
